@@ -32,26 +32,35 @@ static int lept_parse_literal(lept_context* c, lept_value* v, const char* litera
 
 static int lept_parse_number(lept_context* c, lept_value* v) {
     const char* p = c->json;
-    if (*p == '-') p++;
-    if (*p == '0') p++;
+    if (*p == '-') 
+        p++;//若当前字符为负数，则移动至下一个字符
+
+    if (*p == '0') 
+        p++;//若当前字符为 0，则移动至下一个字符
     else {
-        if (!ISDIGIT1TO9(*p)) return LEPT_PARSE_INVALID_VALUE;
-        for (p++; ISDIGIT(*p); p++);
+        if (!ISDIGIT1TO9(*p)) 
+            return LEPT_PARSE_INVALID_VALUE;//若当前字符不为零，则检查当前字符是否 '1' - '9' 的合法数字
+        for (p++; ISDIGIT(*p); p++);// 持续移动至非 '0' - '9' 字符处，即小数点或 'e' 或 'E'
     }
-    if (*p == '.') {
+
+    if (*p == '.') {//若当前字符为小数点
+        p++;//移动至下一个字符
+        if (!ISDIGIT(*p)) 
+            return LEPT_PARSE_INVALID_VALUE;//检查当前字符是否 '0' - '9' 的合法数字
+        for (p++; ISDIGIT(*p); p++);//持续移动至非 '0' - '9' 字符处
+    }
+    if (*p == 'e' || *p == 'E') {//若当前字符为 'e'、'E'
         p++;
-        if (!ISDIGIT(*p)) return LEPT_PARSE_INVALID_VALUE;
-        for (p++; ISDIGIT(*p); p++);
+        if (*p == '+' || *p == '-') 
+            p++;
+        if (!ISDIGIT(*p)) 
+            return LEPT_PARSE_INVALID_VALUE;//检查当前字符是否 '0' - '9' 的合法数字
+        for (p++; ISDIGIT(*p); p++);//持续移动至非 '0' - '9' 字符处
     }
-    if (*p == 'e' || *p == 'E') {
-        p++;
-        if (*p == '+' || *p == '-') p++;
-        if (!ISDIGIT(*p)) return LEPT_PARSE_INVALID_VALUE;
-        for (p++; ISDIGIT(*p); p++);
-    }
+
     errno = 0;
     v->n = strtod(c->json, NULL);
-    if (errno == ERANGE && (v->n == HUGE_VAL || v->n == -HUGE_VAL))
+    if (errno == ERANGE && (v->n == HUGE_VAL || v->n == -HUGE_VAL))//判定数字是否超出范围
         return LEPT_PARSE_NUMBER_TOO_BIG;
     v->type = LEPT_NUMBER;
     c->json = p;

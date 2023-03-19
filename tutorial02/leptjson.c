@@ -2,7 +2,13 @@
 #include <assert.h>  /* assert() */
 #include <stdlib.h>  /* NULL, strtod() */
 
+#include <errno.h>   /* errno, ERANGE */
+#include <math.h>    /* HUGE_VAL */
+
 #define EXPECT(c, ch)       do { assert(*c->json == (ch)); c->json++; } while(0)
+
+#define ISDIGIT(ch)         ((ch) >= '0' && (ch) <= '9')
+#define ISDIGIT1TO9(ch)     ((ch) >= '1' && (ch) <= '9')
 
 typedef struct {
     const char* json;
@@ -42,16 +48,76 @@ static int lept_parse_null(lept_context* c, lept_value* v) {
     return LEPT_PARSE_OK;
 }
 
+static int lept_parse_literal(lept_context* c, lept_value* v){
+    
+}
+
 static int lept_parse_number(lept_context* c, lept_value* v) {
     char* end;
-    /* \TODO validate number */
+
+    if(
+        (*c->json != '-') && (*c->json != '0') && (*c->json != '1') && (*c->json != '2') && (*c->json != '3') &&
+        (*c->json != '4') && (*c->json != '5') && (*c->json != '6') && (*c->json != '7') && (*c->json != '8') && 
+        (*c->json != '9')
+    )
+        return LEPT_PARSE_INVALID_VALUE;
+    if(
+        ( *c->json == '0')          && 
+        ( *(c->json +1) != '\0')    &&
+        ( *(c->json +1) != '.')     &&
+        ( *(c->json +1) != 'E')     &&
+        ( *(c->json +1) != 'e')
+    ) 
+        return LEPT_PARSE_ROOT_NOT_SINGULAR;
+
     v->n = strtod(c->json, &end);
-    if (c->json == end)
+    if (
+        (c->json == end) || 
+        (*(end-1) == '.')
+    )
         return LEPT_PARSE_INVALID_VALUE;
     c->json = end;
     v->type = LEPT_NUMBER;
     return LEPT_PARSE_OK;
 }
+
+/*
+static int lept_parse_number(lept_context* c, lept_value* v) {
+    const char* p = c->json;
+    if (*p == '-') 
+        p++;//若当前字符为负数，则移动至下一个字符
+
+    if (*p == '0') 
+        p++;//若当前字符为 0，则移动至下一个字符
+    else {
+        if (!ISDIGIT1TO9(*p)) 
+            return LEPT_PARSE_INVALID_VALUE;//若当前字符不为零，则检查当前字符是否 '1' - '9' 的合法数字
+        for (p++; ISDIGIT(*p); p++);// 持续移动字符至非法字符处，合理的话应该是小数点或 'e' 或 'E'
+    }
+
+    if (*p == '.') {//若当前字符为小数点
+        p++;//移动至下一个字符
+        if (!ISDIGIT(*p)) return LEPT_PARSE_INVALID_VALUE;//检查当前字符是否 '1' - '9' 的合法数字
+        for (p++; ISDIGIT(*p); p++);//持续移动字符至非法字符处
+    }
+    if (*p == 'e' || *p == 'E') {//若当前字符为 'e'、'E'
+        p++;
+        if (*p == '+' || *p == '-') 
+            p++;
+        if (!ISDIGIT(*p)) return LEPT_PARSE_INVALID_VALUE;
+        for (p++; ISDIGIT(*p); p++);
+    }
+
+    errno = 0;
+    v->n = strtod(c->json, NULL);
+    if (errno == ERANGE && (v->n == HUGE_VAL || v->n == -HUGE_VAL))
+        return LEPT_PARSE_NUMBER_TOO_BIG;
+    v->type = LEPT_NUMBER;
+    c->json = p;
+    return LEPT_PARSE_OK;
+}
+*/
+
 
 static int lept_parse_value(lept_context* c, lept_value* v) {
     switch (*c->json) {
@@ -80,6 +146,7 @@ int lept_parse(lept_value* v, const char* json) {
     return ret;
 }
 
+// 获取 json 数字
 lept_type lept_get_type(const lept_value* v) {
     assert(v != NULL);
     return v->type;

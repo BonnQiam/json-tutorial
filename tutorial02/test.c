@@ -42,6 +42,10 @@ static void test_parse_false() {
     EXPECT_EQ_INT(LEPT_FALSE, lept_get_type(&v));
 }
 
+// 用于测试 json 数字解析功能的宏
+// 1. 测试是否正确解析
+// 2. 测试解析出的类型是否为数字
+// 3. 测试解析出的数字是否正确
 #define TEST_NUMBER(expect, json)\
     do {\
         lept_value v;\
@@ -72,6 +76,7 @@ static void test_parse_number() {
     TEST_NUMBER(0.0, "1e-10000"); /* must underflow */
 }
 
+// 重构修正点
 #define TEST_ERROR(error, json)\
     do {\
         lept_value v;\
@@ -89,7 +94,7 @@ static void test_parse_invalid_value() {
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "nul");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "?");
 
-#if 0
+#if 1
     /* invalid number */
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "+0");
     TEST_ERROR(LEPT_PARSE_INVALID_VALUE, "+1");
@@ -105,7 +110,7 @@ static void test_parse_invalid_value() {
 static void test_parse_root_not_singular() {
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "null x");
 
-#if 0
+#if 1
     /* invalid number */
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "0123"); /* after zero should be '.' , 'E' , 'e' or nothing */
     TEST_ERROR(LEPT_PARSE_ROOT_NOT_SINGULAR, "0x0");
@@ -114,7 +119,7 @@ static void test_parse_root_not_singular() {
 }
 
 static void test_parse_number_too_big() {
-#if 0
+#if 1
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "1e309");
     TEST_ERROR(LEPT_PARSE_NUMBER_TOO_BIG, "-1e309");
 #endif

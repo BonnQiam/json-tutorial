@@ -18,20 +18,40 @@ static int test_pass = 0;
         }\
     } while(0)
 
-#define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d")
+#define EXPECT_EQ_INT(expect, actual) EXPECT_EQ_BASE((expect) == (actual), expect, actual, "%d") //test case 格式
+
+/*
+给出总计 12 组测试（原本）
+*/
 
 static void test_parse_null() {
     lept_value v;
     v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "null"));
-    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
+    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "null"));//解析
+    EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));//访问结果
+}
+
+//* 新增
+static void test_parse_true() {
+    lept_value v;
+    v.type = LEPT_FALSE;
+    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "true"));
+    EXPECT_EQ_INT(LEPT_TRUE, lept_get_type(&v));
+}
+
+//* 新增
+static void test_parse_false() {
+    lept_value v;
+    v.type = LEPT_TRUE;
+    EXPECT_EQ_INT(LEPT_PARSE_OK, lept_parse(&v, "false"));
+    EXPECT_EQ_INT(LEPT_FALSE, lept_get_type(&v));
 }
 
 static void test_parse_expect_value() {
     lept_value v;
 
     v.type = LEPT_FALSE;
-    EXPECT_EQ_INT(LEPT_PARSE_EXPECT_VALUE, lept_parse(&v, ""));
+    EXPECT_EQ_INT(LEPT_PARSE_EXPECT_VALUE, lept_parse(&v, ""));//? "" 相当于 "\0",
     EXPECT_EQ_INT(LEPT_NULL, lept_get_type(&v));
 
     v.type = LEPT_FALSE;
@@ -59,6 +79,10 @@ static void test_parse_root_not_singular() {
 
 static void test_parse() {
     test_parse_null();
+//* 新增
+    test_parse_true();
+    test_parse_false();
+//* 新增    
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
