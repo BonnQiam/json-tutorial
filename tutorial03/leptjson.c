@@ -102,6 +102,21 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
             case '\0':
                 c->top = head;
                 return LEPT_PARSE_MISS_QUOTATION_MARK;
+            case '\\':
+                switch (*p++) {
+                    case '\"': PUTC(c, '\"'); break;
+                    case '\\': PUTC(c, '\\'); break;
+                    case '/':  PUTC(c, '/');  break;
+                    case 'b':  PUTC(c, '\b'); break;
+                    case 'f':  PUTC(c, '\f'); break;
+                    case 'n':  PUTC(c, '\n'); break;
+                    case 'r':  PUTC(c, '\r'); break;
+                    case 't':  PUTC(c, '\t'); break;
+                    default:
+                        c->top = head;
+                        return LEPT_PARSE_INVALID_STRING_ESCAPE;
+                }
+                break;
             default:
                 PUTC(c, ch);
         }
@@ -147,6 +162,9 @@ void lept_free(lept_value* v) {
     v->type = LEPT_NULL;
 }
 
+/***********************************************************************************************
+ *                                          读取 API
+ * *************************************************************************************************/
 lept_type lept_get_type(const lept_value* v) {
     assert(v != NULL);
     return v->type;
@@ -154,20 +172,17 @@ lept_type lept_get_type(const lept_value* v) {
 
 int lept_get_boolean(const lept_value* v) {
     /* \TODO */
-    return 0;
-}
+    assert(v != NULL && (v->type == LEPT_FALSE || v->type == LEPT_TRUE));
 
-void lept_set_boolean(lept_value* v, int b) {
-    /* \TODO */
+    if(v->type == LEPT_FALSE)
+        return FALSE;
+    else
+        return TRUE;
 }
 
 double lept_get_number(const lept_value* v) {
     assert(v != NULL && v->type == LEPT_NUMBER);
     return v->u.n;
-}
-
-void lept_set_number(lept_value* v, double n) {
-    /* \TODO */
 }
 
 const char* lept_get_string(const lept_value* v) {
@@ -180,6 +195,17 @@ size_t lept_get_string_length(const lept_value* v) {
     return v->u.s.len;
 }
 
+/***********************************************************************************************
+ *                                          读取 API
+ * *************************************************************************************************/
+
+void lept_set_boolean(lept_value* v, int b) {
+    /* \TODO */
+    assert(v != NULL && (b == TRUE || b == FALSE));
+    lept_free(v);
+    v->type = b ? LEPT_TRUE : LEPT_FALSE;
+}
+
 void lept_set_string(lept_value* v, const char* s, size_t len) {
     assert(v != NULL && (s != NULL || len == 0));
     lept_free(v);
@@ -188,4 +214,12 @@ void lept_set_string(lept_value* v, const char* s, size_t len) {
     v->u.s.s[len] = '\0';
     v->u.s.len = len;
     v->type = LEPT_STRING;
+}
+
+void lept_set_number(lept_value* v, double n) {
+    /* \TODO */
+    assert(v != NULL);
+    lept_free(v);
+    v->u.n  = n;
+    v->type = LEPT_NUMBER;
 }
