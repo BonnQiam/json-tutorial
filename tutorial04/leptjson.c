@@ -9,6 +9,8 @@
 #include <stdlib.h>  /* NULL, malloc(), realloc(), free(), strtod() */
 #include <string.h>  /* memcpy() */
 
+#include <ctype.h>
+
 #ifndef LEPT_PARSE_STACK_INIT_SIZE
 #define LEPT_PARSE_STACK_INIT_SIZE 256
 #endif
@@ -92,11 +94,42 @@ static int lept_parse_number(lept_context* c, lept_value* v) {
 
 static const char* lept_parse_hex4(const char* p, unsigned* u) {
     /* \TODO */
-    return p;
+    char* ptr;
+    for(int i=0; i<4; i++){
+        if(!isxdigit(p[i]))
+            return NULL;
+    }
+
+    *u = strtoul(p, &ptr, 16);
+    //如果 p 中数值部分有 5 位及以上，是否需要处理？
+
+//    return p;
+    return ptr;
 }
 
 static void lept_encode_utf8(lept_context* c, unsigned u) {
     /* \TODO */
+    if(u <= 0x7F){
+        PUTC(c, u & 0xFF);
+    }
+    else if(u <= 0x7FF){
+        PUTC(c, 0xC0 | ((u >> 6) & 0xFF));
+        PUTC(c, 0x80 | (u & 0x3F));
+    }
+    else if(u <= 0xFFFF){
+        PUTC(c, 0xE0 | ((u >> 12) & 0xFF));
+        PUTC(c, 0x80 | ((u >> 6) & 0x3F));
+        PUTC(c, 0x80 | (u & 0x3F));
+    }
+    else if(u <= 0x10FFFF){
+        PUTC(c, 0xF0 | ((u >> 18) & 0xFF));
+        PUTC(c, 0x80 | ((u >> 12) & 0x3F));
+        PUTC(c, 0x80 | ((u >> 6) & 0x3F));
+        PUTC(c, 0x80 | (u & 0x3F));
+    }
+    else{
+        assert(0);
+    }
 }
 
 #define STRING_ERROR(ret) do { c->top = head; return ret; } while(0)
@@ -129,6 +162,22 @@ static int lept_parse_string(lept_context* c, lept_value* v) {
                         if (!(p = lept_parse_hex4(p, &u)))
                             STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX);
                         /* \TODO surrogate handling */
+                        if( (u>=0xD800) && (u<=0xDBFF) ){
+                            if( (p[0]=='\\') && (p[1]=='u') ){
+                                unsigned v;
+                                p += 2;
+                                if (!(p = lept_parse_hex4(p, &v)))
+                                    STRING_ERROR(LEPT_PARSE_INVALID_UNICODE_HEX);
+
+                                if( (v>=0xDC00) && (v<=0xDFFF) )
+                                    u = 0x10000 + (u - 0xD800) * 0x400 + (v - 0xDC00);
+                                else
+                                    return LEPT_PARSE_INVALID_UNICODE_SURROGATE;
+                            }
+                            else
+                                return LEPT_PARSE_INVALID_UNICODE_SURROGATE;
+                        }
+
                         lept_encode_utf8(c, u);
                         break;
                     default:
