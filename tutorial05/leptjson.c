@@ -9,6 +9,8 @@
 #include <stdlib.h>  /* NULL, malloc(), realloc(), free(), strtod() */
 #include <string.h>  /* memcpy() */
 
+#include <stdio.h>
+
 #ifndef LEPT_PARSE_STACK_INIT_SIZE
 #define LEPT_PARSE_STACK_INIT_SIZE 256
 #endif
@@ -187,6 +189,10 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
     size_t size = 0;
     int ret;
     EXPECT(c, '[');
+
+    c->json++;
+    lept_parse_whitespace(c);
+
     if (*c->json == ']') {
         c->json++;
         v->type = LEPT_ARRAY;
@@ -195,12 +201,17 @@ static int lept_parse_array(lept_context* c, lept_value* v) {
         return LEPT_PARSE_OK;
     }
     for (;;) {
+        lept_parse_whitespace(c);
+
         lept_value e;
         lept_init(&e);
         if ((ret = lept_parse_value(c, &e)) != LEPT_PARSE_OK)
             return ret;
         memcpy(lept_context_push(c, sizeof(lept_value)), &e, sizeof(lept_value));
         size++;
+
+        lept_parse_whitespace(c);
+
         if (*c->json == ',')
             c->json++;
         else if (*c->json == ']') {
