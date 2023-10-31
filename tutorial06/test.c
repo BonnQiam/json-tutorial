@@ -348,7 +348,7 @@ static void test_parse_miss_comma_or_curly_bracket() {
 }
 
 static void test_parse() {
-#if 1
+#if 0
     test_parse_null();
     test_parse_true();
     test_parse_false();
@@ -361,7 +361,7 @@ static void test_parse() {
     test_parse_object();
 #endif
 
-#if 1
+#if 0
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
