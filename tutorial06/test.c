@@ -323,6 +323,7 @@ static void test_parse_miss_comma_or_square_bracket() {
 }
 
 static void test_parse_miss_key() {
+#if 1
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{:1,");
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{1:1,");
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{true:1,");
@@ -331,6 +332,7 @@ static void test_parse_miss_key() {
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{[]:1,");
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{{}:1,");
     TEST_ERROR(LEPT_PARSE_MISS_KEY, "{\"a\":1,");
+#endif
 }
 
 static void test_parse_miss_colon() {
@@ -346,16 +348,20 @@ static void test_parse_miss_comma_or_curly_bracket() {
 }
 
 static void test_parse() {
+#if 1
     test_parse_null();
     test_parse_true();
     test_parse_false();
     test_parse_number();
     test_parse_string();
     test_parse_array();
-#if 0
+#endif
+
+#if 1
     test_parse_object();
 #endif
 
+#if 1
     test_parse_expect_value();
     test_parse_invalid_value();
     test_parse_root_not_singular();
@@ -366,7 +372,9 @@ static void test_parse() {
     test_parse_invalid_unicode_hex();
     test_parse_invalid_unicode_surrogate();
     test_parse_miss_comma_or_square_bracket();
-#if 0
+#endif
+
+#if 1
     test_parse_miss_key();
     test_parse_miss_colon();
     test_parse_miss_comma_or_curly_bracket();
