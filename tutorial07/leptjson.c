@@ -348,6 +348,58 @@ int lept_parse(lept_value* v, const char* json) {
 
 static void lept_stringify_string(lept_context* c, const char* s, size_t len) {
     /* ... */
+    PUTC(c, '\"');
+    for (size_t i = 0; i < len; i++)
+    {
+        char ch = *(s+i);
+        switch (ch)
+        {
+        case '\"':
+            PUTC(c, '\\');
+            PUTC(c, '\"');
+            break;
+        case '\\':
+            PUTC(c, '\\');
+            PUTC(c, '\\');
+            break;
+//        case '/':
+//            PUTC(c, '\\');
+//            PUTC(c, '/');
+//            break;
+        case '\b':
+            PUTC(c, '\\');
+            PUTC(c, 'b');
+            break;
+        case '\f':
+            PUTC(c, '\\');
+            PUTC(c, 'f');
+            break;
+        case '\n':
+            PUTC(c, '\\');
+            PUTC(c, 'n');
+            break;
+        case '\r':
+            PUTC(c, '\\');
+            PUTC(c, 'r');
+            break;
+        case '\t':
+            PUTC(c, '\\');
+            PUTC(c, 't');
+            break;
+        default:
+            //? 关于 “关于生成器对 \u 字符的处理”，首先 “\u 字符” 是 json 文本使用的 unicode 转义序列，用于满足表示特殊字符的需要。但是这并不意味着表示特殊字符必须使用 unicode 转义序列
+            //? 因此该生成器基于由 unicode 转义序列生成的特殊字符生成字符串时并不会重新使用 unicode 转义序列，而是直接生成相应的特殊字符进入字符串中，相当于调用 PUTC(c, ch);
+            //! 下面这段直接来自 answer
+            if (ch < 0x20) {
+                char buffer[7];
+                sprintf(buffer, "\\u%04X", ch);
+                PUTS(c, buffer, 6);
+            }
+            else
+                PUTC(c, ch);
+        }
+    }
+    PUTC(c, '\"');
 }
 
 static void lept_stringify_value(lept_context* c, const lept_value* v) {
