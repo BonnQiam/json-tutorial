@@ -432,7 +432,7 @@ static void test_stringify() {
     TEST_ROUNDTRIP("true");
     test_stringify_number();
     test_stringify_string();
-//    test_stringify_array();
+    test_stringify_array();
 //    test_stringify_object();
 }
 

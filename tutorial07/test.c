@@ -411,6 +411,9 @@ static void test_stringify_string() {
     TEST_ROUNDTRIP("\"Hello\\nWorld\"");
     TEST_ROUNDTRIP("\"\\\" \\\\ / \\b \\f \\n \\r \\t\"");
     TEST_ROUNDTRIP("\"Hello\\u0000World\"");
+    TEST_ROUNDTRIP("\"\\u0024\"");
+    TEST_ROUNDTRIP("\"\\uD834\\uDD1E\"");
+    TEST_ROUNDTRIP("\"𝄞\"");
 }
 
 static void test_stringify_array() {
@@ -429,8 +432,8 @@ static void test_stringify() {
     TEST_ROUNDTRIP("true");
     test_stringify_number();
     test_stringify_string();
-//    test_stringify_array();
-//    test_stringify_object();
+    test_stringify_array();
+    test_stringify_object();
 }
 
 static void test_access_null() {

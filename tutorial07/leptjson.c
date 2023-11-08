@@ -390,7 +390,7 @@ static void lept_stringify_string(lept_context* c, const char* s, size_t len) {
             //? 关于 “关于生成器对 \u 字符的处理”，首先 “\u 字符” 是 json 文本使用的 unicode 转义序列，用于满足表示特殊字符的需要。但是这并不意味着表示特殊字符必须使用 unicode 转义序列
             //? 因此该生成器基于由 unicode 转义序列生成的特殊字符生成字符串时并不会重新使用 unicode 转义序列，而是直接生成相应的特殊字符进入字符串中，相当于调用 PUTC(c, ch);
             //! 下面这段直接来自 answer
-            if (ch < 0x20) {
+            if ( (unsigned char)ch < 0x20) {
                 char buffer[7];
                 sprintf(buffer, "\\u%04X", ch);
                 PUTS(c, buffer, 6);
@@ -411,9 +411,27 @@ static void lept_stringify_value(lept_context* c, const lept_value* v) {
         case LEPT_STRING: lept_stringify_string(c, v->u.s.s, v->u.s.len); break;
         case LEPT_ARRAY:
             /* ... */
+            PUTC(c, '[');
+            for(size_t i=0; i < v->u.a.size; i++)
+            {
+                if (i > 0)
+                    PUTC(c, ',');
+                lept_stringify_value(c, &v->u.a.e[i]);
+            }
+            PUTC(c, ']');
             break;
         case LEPT_OBJECT:
             /* ... */
+            PUTC(c, '{');
+            for(size_t i=0; i < v->u.o.size; i++)
+            {
+                if (i > 0)
+                    PUTC(c, ',');
+                lept_stringify_string(c, v->u.o.m[i].k, v->u.o.m[i].klen);
+                PUTC(c, ':');
+                lept_stringify_value(c, &v->u.o.m[i].v);
+            }
+            PUTC(c, '}');
             break;
         default: assert(0 && "invalid type");
     }
